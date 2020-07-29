@@ -12,8 +12,9 @@ import bci_workshop_tools as BCIw  # Our own functions for the workshop
 ################
 #### Params ####
 ################
-FP_RAW_OUT = '../data/trial_raw.feather'
-FP_FEATS_OUT = '../data/trial_features.feather'
+BHVR = input("Describe your behavior during recording in one word\n")
+FP_RAW_OUT = os.path.join('..','..','data',f'{BHVR}_raw.feather')
+FP_FEATS_OUT =os.path.join('..','..','data',f'{BHVR}_features.feather')
 
 # Search for active LSL stream
 print('Looking for an EEG stream...')
@@ -129,6 +130,7 @@ try:
 except KeyboardInterrupt:
     raw_data_out = pd.concat(raw_data_out,ignore_index=True)
     print(f'\nsaving {raw_data_out.shape[0]} samples from channels {raw_data_out.columns}')
+    print(f'save files are {FP_RAW_OUT} and {FP_FEATS_OUT}')
     raw_data_out['time'] = np.arange(len(raw_data_out))/fs
     raw_data_out.to_feather(FP_RAW_OUT)
 

@@ -5,7 +5,12 @@ ADDRESS= "00:55:DA:B7:74:0D"
 connect:
 	@python muse-lsl.py --address ${ADDRESS}
 
-check_reqs:
+
+collect:
+	@python collect_data.py
+
+# helper fcn to update requirements.txt if new packages are being used in this project
+overwrite_reqs:
 	@echo -n "are you sure you're in the right env to overwrite requirements.txt? [y/n]" && read ans && [ $${ans:-n}=y ]
-reqs: check_reqs
+reqs: overwrite_reqs
 	@$(shell conda list -e > ../requirements.txt)

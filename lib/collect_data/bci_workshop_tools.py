@@ -7,9 +7,7 @@ Created on Fri May 08 15:34:59 2015
 @author: Cassani
 """
 
-import os
-import sys
-from tempfile import gettempdir
+
 from subprocess import call
 
 import matplotlib.pyplot as plt
