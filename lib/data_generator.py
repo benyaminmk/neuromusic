@@ -1,6 +1,7 @@
 """ Author: Benyamin Meschede-Krasa 
 play back saved data in order to build systems offline """
 import os
+import time
 import pandas as pd
 
 ######################
@@ -36,6 +37,15 @@ def playback_episode(episode=FEATS):
         outputted when collecting data online
         Contents of datapoint depends on episode (raw eeg or features)
     """
+    t_0 = episode.time.values[0] - episode.time.diff()[1]
     for idx, datapoint in episode.iterrows():
+        t=datapoint.time
         yield datapoint
+        dt = t-t_0
+        time.sleep(dt.seconds)
+        t_0=t
 
+if __name__ == "__main__":
+    print('playing episode with realtime dynamics\n')
+    for datapt in playback_episode():
+        print(datapt)
