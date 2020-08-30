@@ -1,0 +1,15 @@
+# requirements holder
+
+bitstring=3.1.6
+feather-format=0.4.0=py_1003
+
+jupyter=1.0.0=py_2
+mne=0.20.5=py38h32f6830_0
+numpy=1.18.1=py38h8854b6b_1
+pandas=1.0.3=py38hcb8c335_0
+pygatt=4.0.5=pypi_0
+pylsl=1.12.2
+
+scikit-learn=0.22.2.post1=py38hcdab131_0
+scipy=1.4.1=py38h18bccfc_2
+seaborn=0.10.0=py_1
