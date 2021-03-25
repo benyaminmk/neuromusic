@@ -7,7 +7,8 @@ import pandas as pd
 ######################
 ######  PARAMS  ######
 ######################
-DIR_DATA = os.path.join('..','data')
+
+DIR_DATA = os.path.join(os.path.dirname(__file__),'..','data')
 FP_FEATS = os.path.join(DIR_DATA, 'trial_features.feather')
 
 #############################
