@@ -9,6 +9,7 @@ numpy
 pandas
 pygatt
 pylsl
+pyo
 
 scikit-learn
 scipy
