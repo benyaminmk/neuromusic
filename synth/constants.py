@@ -15,3 +15,6 @@ scales = {
     "har_minor":    [0, 2, 3, 5, 7, 8, 11],
     "mel_minor":    [0, 2, 3, 5, 7, 9, 11]
 }
+
+if __name__ == "__main__":
+    print(scales)
