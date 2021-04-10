@@ -40,7 +40,7 @@ class EEG_stream():
 
         self.shift_length = epoch_length - overlap_length
         # connect muse headset
-        subprocess.Popen(["python.exe",
+        subprocess.Popen(["python",
                                               "-u",
                                                 os.path.join('lib','collect_data','muse-lsl.py'), #run the muse-lsl.py script
                                                 "--address",
@@ -396,7 +396,7 @@ if __name__ == "__main__":
     synth = Synth()
 
     # run the plotter at the same time
-    subprocess.Popen(['python.exe','-u','realtime_plotter.py'])
+    subprocess.Popen(['python','-u','realtime_plotter.py'])
     try:
         while True:
             # update eeg buffer and get new features
