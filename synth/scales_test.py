@@ -19,11 +19,21 @@ s.start()
 #####################
 #### SYNTH SETUP ####
 #####################
-env = pyo.Adsr(attack=0.01, decay=0.3, sustain=1, release=0.1,
+env = pyo.Adsr(attack=0.1, decay=0.5, sustain=0, release=0.1,
            dur=2, mul=0.5
 )
-osc_alpha = pyo.Sine(mul=env).out()
-osc_gamma = pyo.Sine(mul=env).out()
+
+mm = pyo.Mixer(outs=1, chnls=2, time=0.025)
+osc_gamma = pyo.Osc(table=pyo.TriangleTable(),mul=env)
+osc_alpha = pyo.Sine(mul=env)
+reverb = pyo.Freeverb(mm[0],size=[.79,.8],damp=.9,bal=.3).out()
+
+mm.addInput(0, osc_gamma)
+mm.addInput(1, osc_alpha)
+mm.setAmp(0,0,0.5)
+mm.setAmp(1,0,0.5)
+
+
 ################
 #### PARAMS ####
 ################
@@ -31,7 +41,7 @@ base_alpha = 55           # reference base note in Hz (A1 = 55Hz)
 base_gamma = 55
 oct_offset = 4      # octave offset
 chr_offset = 0      # chromatic offset
-scale = constants.scales["chromatic"]
+scale = constants.scales["pentatonic2"]
 scale_step_alpha = scale_step_gamma = 0
 
 
@@ -64,7 +74,7 @@ def get_closest_quantile(value, quantiles):
         the closest quantile to the value given
     """
     quantile_index = np.argmin(np.abs(np.array(quantiles)-value))
-    return quantiles[quantile_index]
+    return quantile_index
 
 
 for data_point in data_generator.playback_episode():
@@ -79,9 +89,14 @@ for data_point in data_generator.playback_episode():
     print("GAMMA SYNTH")
     print(f"Scale step:\t{scale_step_gamma}")
     print(f"Frequency:\t{osc_gamma.freq}\n")
+    decay = 0.5+np.random.randn()*0.5
+
+    print("DECAY")
+    print(f"Decay:\t{decay}")
 
     env.play()
+    env.setDecay(decay)
 
-    scale_step_alpha = get_closest_quantile(data_point.alpha, alpha_qt)
-    scale_step_gamma = get_closest_quantile(data_point.gamma, gamma_qt)
+    scale_step_alpha = scale[get_closest_quantile(data_point.alpha, alpha_qt)]
+    scale_step_gamma = scale[get_closest_quantile(data_point.gamma, gamma_qt)]
 s.stop()

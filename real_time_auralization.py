@@ -152,7 +152,8 @@ class EEG_stream():
     
 class Synth():
     def __init__(self,
-                 scale='chromatic', #I think this is only working on scales with 12 values
+                 scale='pentatonic', #I think this is only working on scales with 12 values
+                 n_octaves = 1,
                  attack=0.01,
                  decay=0.3, 
                  sustain=1, 
@@ -163,7 +164,7 @@ class Synth():
                  oct_offset=4,
                  chr_offset=0):
         
-        self.scale = scales[scale]
+        self.scale = np.hstack([np.hstack(scales[scale]) + i*12 for i in len(n_octaves)]) #TODO
         self.base = base
         self.oct_offset = oct_offset
         self.chr_offset = chr_offset
@@ -184,7 +185,7 @@ class Synth():
 
     def step_scales(self,scale_step_alpha,scale_step_gamma):
         def step(osc,scale_step):
-            osc.freq = float((self.base + self.base * self.oct_offset) * 2 ** ((scale_step + self.chr_offset) / 12)) #TODO Should 12 here be len(self.scale)
+            osc.freq = float((self.base + self.base * self.oct_offset) * 2 ** ((scale_step + self.chr_offset) / 12)) 
 
         self.scale_step_alpha = scale_step_alpha
         self.scale_step_gamma = scale_step_gamma
@@ -360,6 +361,13 @@ if __name__ == "__main__":
     ######################
     ######  PARAMS  ######
     ######################
+    alpha_qt = []
+    gamma_qt=[]
+    for qt in np.linspace(0,1,len(scale)):
+        quantile_all = data_generator.FEATS.quantile(qt)
+        alpha_qt.append(quantile_all.alpha)
+        gamma_qt.append(quantile_all.gamma)
+    
     # 12 quantiles of alpha data collected on myself
     ALPHA_QUANTILES = [-0.7550127559323341, 
                         1.3198856619998833, 
