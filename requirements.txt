@@ -7,6 +7,7 @@ jupyter
 mne
 numpy
 pandas
+pyarrow     # required for feather
 pygatt
 pylsl
 pyo

@@ -20,7 +20,7 @@ s.start()
 #### SYNTH SETUP ####
 #####################
 env = pyo.Adsr(attack=0.1, decay=0.5, sustain=0, release=0.1,
-           dur=2, mul=0.5
+           dur=0.5, mul=0.5
 )
 
 mm = pyo.Mixer(outs=1, chnls=2, time=0.025)
