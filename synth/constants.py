@@ -1,3 +1,5 @@
+import numpy as np
+
 # Scales start in A
 scales = {
     "chromatic":    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
@@ -17,6 +19,16 @@ scales = {
 
     # 2 octave
     'pentatonic2': [0, 3, 5, 7, 10, 12, 15, 17, 19, 22],
+}
+
+spectral_bands = {
+    'slow': [0,2],
+    'delta': [2,4],
+    'theta': [4,8],
+    'alpha': [8,12],
+    'beta1': [12,20],
+    'beta2': [20,30],
+    'gamma': [30,np.inf]
 }
 
 if __name__ == "__main__":

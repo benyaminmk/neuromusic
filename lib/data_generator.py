@@ -10,17 +10,20 @@ import pandas as pd
 
 DIR_DATA = os.path.join(os.path.dirname(__file__),'..','data')
 FP_FEATS = os.path.join(DIR_DATA, 'trial_features.feather')
+FP_RAW = os.path.join(DIR_DATA, 'trial_raw.feather')
 
 #############################
 ######  PRECONDITIONS  ######
 #############################
 assert os.path.isdir(DIR_DATA)
 assert os.path.isfile(FP_FEATS)
+assert os.path.isfile(FP_RAW)
 
 # load saved features
 FEATS = pd.read_feather(FP_FEATS)
+RAW = pd.read_feather(FP_RAW)
 
-def playback_episode(episode=FEATS):
+def playback_features():
     """replay recorded episode. 
     Both raw EEG data and extracted features can be played back.
 
@@ -38,8 +41,19 @@ def playback_episode(episode=FEATS):
         outputted when collecting data online
         Contents of datapoint depends on episode (raw eeg or features)
     """
-    t_0 = episode.time.values[0] - episode.time.diff()[1]
-    for idx, datapoint in episode.iterrows():
+    t_0 = FEATS.time.values[0] - FEATS.time.diff()[1]
+    for idx, datapoint in FEATS.iterrows():
+        t=datapoint.time
+        yield datapoint
+        dt = t-t_0
+        time.sleep(dt.seconds-0.6)
+        t_0=t
+
+
+
+def playback_raw(window_length,window_step): #TODO variable sliding window to explore tempo
+    dt = RAW.time.values[0] - RAW.time.diff()[1]
+    for idx, datapoint in RAW.iterrows():
         t=datapoint.time
         yield datapoint
         dt = t-t_0
