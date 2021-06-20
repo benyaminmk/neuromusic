@@ -5,9 +5,34 @@ import time
 import pyo
 import constants
 import numpy as np
+import pandas as pd
+from mne.time_frequency.multitaper import psd_array_multitaper
 
 sys.path.append(os.path.join(os.path.abspath(''),"..","lib"))
 import data_generator
+
+################
+#### PARAMS ####
+################
+
+# music parameters
+base_alpha = 55           # reference base note in Hz (A1 = 55Hz)
+base_beta = 110
+oct_offset = 4      # octave offset
+chr_offset = 0      # chromatic offset
+scale = constants.scales["pentatonic2"]
+scale_step_alpha = scale_step_beta = 0
+
+note_types = [8,4,2,1] # These are the length of notes, e.g. whole, half, quarter, eights etc.
+n_sixteenth_alpha = max(note_types)
+n_sixteenth_beta = max(note_types)
+
+# EEG paramters
+window_length = 3 # seconds
+window_step = 0.3 # seconds
+
+# check for lag in the simulated real-time playback
+DO_TIMERS = False
 
 ######################
 #### SERVER SETUP ####
@@ -38,19 +63,6 @@ mm.addInput(1, osc_beta)
 mm.setAmp(0,0,0.5)
 mm.setAmp(1,0,0.5)
 
-
-################
-#### PARAMS ####
-################
-base_alpha = 55           # reference base note in Hz (A1 = 55Hz)
-base_beta = 110
-oct_offset = 4      # octave offset
-chr_offset = 0      # chromatic offset
-scale = constants.scales["pentatonic2"]
-scale_step_alpha = scale_step_beta = 0
-
-note_types = [8,4,2,1]
-
 #########################
 #### NEURO --> SOUND ####
 #########################
@@ -65,7 +77,7 @@ for qt in np.linspace(0,1,len(scale)):
     alpha_qt.append(quantile_all.alpha)
     beta_qt.append(quantile_all.beta)
 
-#  delta and beta are used for ntoe type (i.e. duration) 
+#  delta and beta are used for note type (i.e. duration/rhythm) 
 # during playback, see which value it's nearest to and plat the note for the duration associated with the quantile index
     
 gamma_qt=[]
@@ -96,13 +108,72 @@ def get_closest_quantile(value, quantiles):
     quantile_index = np.argmin(np.abs(np.array(quantiles)-value))
     return quantile_index
 
+def spectral_bands(window):
+    """calculate spectral bands from a window of EEG data. Bands are mean values averaged 
+    across all 4 channels with bands defined as:
+        Delta: <4Hz
+        Theta: 4-8Hz
+        Alpha: 8-12Hz
+        Beta: 12-30Hz
+        Gamma: >30 Hz
 
-n_sixteenth_alpha = max(note_types)
-n_sixteenth_beta = max(note_types)
+    Parameters
+    ----------
+    window : pandas.DataFrame
+        window of EEG data from 4 channels plus a `time` column
+        sampling frequency is inferred from the time column.
+    
+    Returns
+    -------
+    spectral_bands : pandas.Series
+        spectral band powers for the input window
+    """
 
-for data_point in data_generator.playback_features():
-    # select duration based on gamma and delta
+    # 1. Compute the power spectral density (PSD) using multitaper method
+    sfreq = int(1/(window.time.values[1] - window.time.values[0])) #infer sampling frequenccy from time column
+    psd, f = psd_array_multitaper(window.drop('time',axis=1).values.T,
+                                 sfreq,
+                                 adaptive=True, #NOTE This might be slow, can be set to False
+                                 normalization='full',
+                                 verbose=False)
+    
+    # Average of band powers
+    # Delta <4
+    ind_delta, = np.where(f < 4)
+    delta = np.mean(psd[:, ind_delta])
+    # Theta 4-8
+    ind_theta, = np.where((f >= 4) & (f <= 8))
+    theta = np.mean(psd[:, ind_theta])
+    # Alpha 8-12
+    ind_alpha, = np.where((f >= 8) & (f <= 12))
+    alpha = np.mean(psd[:, ind_alpha])
+    # Beta 12-30
+    ind_beta = np.where((f >= 12) & (f < 30))
+    beta = np.mean(psd[:, ind_beta])
+    # Gamma >30
+    ind_gamma = np.where(f > 30)
+    gamma = np.mean(psd[:, ind_gamma])
 
+    spectral_bands = pd.Series({'delta':delta, 
+                                   'theta': theta, 
+                                   'alpha': alpha,
+                                   'beta' : beta, 
+                                   'gamma' : gamma})
+
+
+    # convert to decibles
+    spectral_bands = 10*np.log10(spectral_bands)
+    return spectral_bands
+
+########################################################
+######                   MAIN                     ######
+########################################################
+
+
+for eeg_window in data_generator.playback_raw(window_length,window_step):
+    if DO_TIMERS: start = time.time()
+    # calcualte spectral features from the window
+    data_point = spectral_bands(eeg_window)
     # select duration based previous value of delta and gamma
     if n_sixteenth_alpha ==max(note_types):
         scale_step_alpha = scale[get_closest_quantile(data_point.alpha, alpha_qt)]
@@ -134,6 +205,8 @@ for data_point in data_generator.playback_features():
         
     else:
         n_sixteenth_beta +=1
+    
+    if DO_TIMERS: print(f"possible lag of {time.time()-start} seconds")
 
 
 s.stop()
